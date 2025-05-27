@@ -1,0 +1,45 @@
+- hosts: chat_server
+  become: yes
+  tasks:
+    - name: Update all packages
+      yum:
+        name: '*'
+        state: latest
+
+    - name: Install Node.js & npm from Nodesource
+      shell: |
+        curl -sL https://rpm.nodesource.com/setup_18.x | bash -
+        yum install -y nodejs
+
+    - name: Install git, nginx
+      yum:
+        name:
+          - git
+          - nginx
+        state: present
+
+    - name: Start and enable NGINX
+      systemd:
+        name: nginx
+        enabled: yes
+        state: started
+
+    - name: Install PM2 globally
+      npm:
+        name: pm2
+        global: yes
+
+    - name: Clone your chat app repo
+      git:
+        repo: "https://github.com/your-repo/chat-app.git"
+        dest: /home/ec2-user/chat-app
+
+    - name: Install Node.js dependencies
+      shell: npm install
+      args:
+        chdir: /home/ec2-user/chat-app
+
+    - name: Start chat app using PM2
+      shell: pm2 start server.js
+      args:
+        chdir: /home/ec2-user/chat-app
