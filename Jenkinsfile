@@ -3,9 +3,8 @@ pipeline {
 
     environment {
         SSH_CREDENTIALS_ID = 'ansible-key'
-        REMOTE_USER = 'ec2-user'
-        REMOTE_HOST = '13.50.149.174'
-        PLAYBOOK_PATH = '/var/www/html/chat-app/ansible/setup.yml'
+        INVENTORY_PATH = 'ansible/inventory.ini'
+        PLAYBOOK_PATH = 'ansible/setup.yml'
     }
 
     stages {
@@ -15,12 +14,11 @@ pipeline {
             }
         }
 
-        stage('Run Ansible Playbook on EC2') {
+        stage('Run Ansible Playbook from Jenkins') {
             steps {
                 sshagent(credentials: [env.SSH_CREDENTIALS_ID]) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} \
-                        'ansible-playbook ${PLAYBOOK_PATH}'
+                        ansible-playbook -i ${INVENTORY_PATH} ${PLAYBOOK_PATH}
                     """
                 }
             }
